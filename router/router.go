@@ -7,7 +7,7 @@ import (
 
 func InitRouter(r *gin.Engine) {
 	//// public directory is used to serve static resources
-	//r.Static("/static", "./public")
+	r.Static("/static", "./public")
 
 	apiRouter := r.Group("/douyin")
 
@@ -15,12 +15,12 @@ func InitRouter(r *gin.Engine) {
 	apiRouter.GET("/hello/", controller.Hello)
 
 	//// basic apis
-	//apiRouter.GET("/feed/", )
+	apiRouter.GET("/feed/", controller.Feed)
 	apiRouter.GET("/user/", controller.User)
 	apiRouter.POST("/user/register/", controller.Register)
 	apiRouter.POST("/user/login/", controller.Login)
-	//apiRouter.POST("/publish/action/", controller.Publish)
-	//apiRouter.GET("/publish/list/", controller.PublishList)
+	apiRouter.POST("/publish/action/", controller.Publish)
+	apiRouter.GET("/publish/list/", controller.PublishList)
 	//
 	//// extra apis - I
 	//apiRouter.POST("/favorite/action/", controller.FavoriteAction)
