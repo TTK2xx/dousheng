@@ -61,7 +61,7 @@ func Publish(c *gin.Context) {
 	title, _ := c.GetPostForm("title")
 	u, _ := service.GetUserByUsername(username)
 	video := Video{
-		Id:            1,
+		Id:            u.ID,
 		Author:        *u,
 		PlayUrl:       "rd5met9ed.hn-bkt.clouddn.com" + "/" + playUrl,
 		CoverUrl:      "rd5met9ed.hn-bkt.clouddn.com" + "/" + coverUrl,
