@@ -2,6 +2,7 @@ package controller
 
 import (
 	"dousheng/common"
+	"dousheng/model"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"time"
@@ -9,8 +10,8 @@ import (
 
 type FeedResponse struct {
 	common.Response
-	VideoList []Video `json:"video_list,omitempty"`
-	NextTime  int64   `json:"next_time,omitempty"`
+	VideoList []model.Video `json:"video_list,omitempty"`
+	NextTime  int64         `json:"next_time,omitempty"`
 }
 
 // Feed same demo video list for every request

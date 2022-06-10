@@ -2,6 +2,7 @@ package controller
 
 import (
 	"dousheng/common"
+	"dousheng/model"
 	"dousheng/service"
 	"encoding/base64"
 	"errors"
@@ -27,16 +28,10 @@ type PublishResponse struct {
 	common.Response
 }
 
-type PublishListRequest struct {
-	Token string `form:"token" json:"token" binding:"required"`
-	Title string `form:"title" json:"title" binding:"required"`
-}
-
-type PublishListResponse struct {
-	common.Response
-	VideoList []Video `json:"video_list"`
-}
-
+var domainName = "rd5met9ed.hn-bkt.clouddn.com"
+var bucket = "top-20"
+var accessKey = "ANvRMQN-FX6C6abeKAYxqAq1qq9je2x1UAmlLjFA"
+var secretKey = "RhH86hgmwDphJxs5jBa1yUzZM7ydAch7msd-_VSi"
 var videoFileExt = []string{"mp4", "flv"} //此处可根据需要添加格式
 var idGen *idworker.IdWorker
 
@@ -60,29 +55,22 @@ func Publish(c *gin.Context) {
 	username := strs[0]
 	title, _ := c.GetPostForm("title")
 	u, _ := service.GetUserByUsername(username)
-	video := Video{
-		Id:            u.ID,
-		Author:        *u,
-		PlayUrl:       "rd5met9ed.hn-bkt.clouddn.com" + "/" + playUrl,
-		CoverUrl:      "rd5met9ed.hn-bkt.clouddn.com" + "/" + coverUrl,
+
+	//存数据库之后，再根据数据库隐式生成的ID，存入video的ID
+	video := model.Video{
+		Author:        u.ID,
+		PlayUrl:       domainName + "/" + playUrl,
+		CoverUrl:      domainName + "/" + coverUrl,
 		FavoriteCount: 0,
 		CommentCount:  0,
 		IsFavorite:    false,
 		Title:         title,
 	}
 	fmt.Println("video=%#v\n", video)
+	service.CreateVideo(&video)
 	c.JSON(http.StatusOK, common.Response{
 		StatusCode: common.OK,
 		StatusMsg:  "Publish Success!",
-	})
-}
-
-func PublishList(c *gin.Context) {
-	c.JSON(http.StatusOK, PublishListResponse{
-		Response: common.Response{
-			StatusCode: 0,
-		},
-		VideoList: DemoVideos,
 	})
 }
 
@@ -116,10 +104,6 @@ func UploadVideo(file *multipart.FileHeader) (err error, coverUrl string, playUr
 	VideoFolderName := "video"
 	key := VideoFolderName + "/" + videoName //key是要上传的文件访问路径
 	//下面是七牛api
-	//domainName := "rd5met9ed.hn-bkt.clouddn.com"
-	bucket := "top-20"
-	accessKey := "ANvRMQN-FX6C6abeKAYxqAq1qq9je2x1UAmlLjFA"
-	secretKey := "RhH86hgmwDphJxs5jBa1yUzZM7ydAch7msd-_VSi"
 	putPolicy := storage.PutPolicy{
 		Scope: bucket,
 	}
