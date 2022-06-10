@@ -2,6 +2,7 @@ package controller
 
 import (
 	"dousheng/common"
+	"encoding/base64"
 	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin"
@@ -67,10 +68,11 @@ func UploadVideo(file *multipart.FileHeader) (err error) {
 	fmt.Println("刚才上传的文件后缀名：" + suffix)
 	id, err := idGen.NextId()
 	filename = strconv.FormatInt(id, 10)
-	filename = filename + "." + suffix
-	data, err := file.Open() //data是文件内容的访问接口（重点）
-	folderName := "video"
-	key := folderName + "/" + filename //key是要上传的文件访问路径
+
+	videoName := filename + "." + suffix //视频的文件名
+	data, err := file.Open()             //data是文件内容的访问接口（重点）
+	VideoFolderName := "video"
+	key := VideoFolderName + "/" + videoName //key是要上传的文件访问路径
 	//下面是七牛api
 	//domainName := "rd5met9ed.hn-bkt.clouddn.com"
 	bucket := "top-20"
@@ -79,10 +81,17 @@ func UploadVideo(file *multipart.FileHeader) (err error) {
 	putPolicy := storage.PutPolicy{
 		Scope: bucket,
 	}
+	//视频封面start
+	coverName := filename + "." + "jpg"           //封面的文件名
+	coverFolderName := "cover"                    //七牛云中存放图片的目录名。用于与文件名拼接，组成文件路径
+	photoKey := coverFolderName + "/" + coverName //封面的访问路径，我们通过此路径在七牛云空间中定位封面
+	saveJpgEntry := base64.StdEncoding.EncodeToString([]byte(bucket + ":" + photoKey))
+	putPolicy.PersistentOps = "vframe/jpg/offset/1|saveas/" + saveJpgEntry //取视频第1秒的截图
+	//end
 	putPolicy.Expires = 7200 //自定义凭证有效期（示例2小时，Expires 单位为秒，为上传凭证的有效时间）
 	mac := qbox.NewMac(accessKey, secretKey)
 	upToken := putPolicy.UploadToken(mac)
-
+	fmt.Printf("putPolicy=%#v\n", putPolicy)
 	cfg := storage.Config{}
 	// 空间对应的机房
 	cfg.Zone = &storage.ZoneHuanan
@@ -99,10 +108,8 @@ func UploadVideo(file *multipart.FileHeader) (err error) {
 			"x:name": "github logo",
 		},
 	}
-
-	//data := []byte("hello, this is qiniu cloud")
+	//data是字节流，data := []byte("hello, this is qiniu cloud")
 	//file.size是要上传的文件大小
-
 	err = formUploader.Put(context.Background(), &ret, upToken, key, data, file.Size, &putExtra)
 	if err != nil {
 		fmt.Println(err)
@@ -113,7 +120,14 @@ func UploadVideo(file *multipart.FileHeader) (err error) {
 	return err
 }
 func Publish(c *gin.Context) {
+
 	file, err := c.FormFile("data")
+	title, err := c.FormFile("title")
+	fmt.Println("title:")
+	fmt.Println(title)
+	token, err := c.FormFile("title")
+	fmt.Println("token:")
+	fmt.Println(token)
 	err = UploadVideo(file)
 	if err != nil {
 		c.JSON(http.StatusOK, common.Response{
@@ -130,46 +144,10 @@ func Publish(c *gin.Context) {
 	//	})
 	//	return
 	//}
+
 }
 
 func PublishList(c *gin.Context) {
-	accessKey := "ANvRMQN-FX6C6abeKAYxqAq1qq9je2x1UAmlLjFA"
-	secretKey := "RhH86hgmwDphJxs5jBa1yUzZM7ydAch7msd-_VSi"
-	localFile := "/Users/jemy/Documents/github.png"
-	bucket := "top-20"
-	key := "/static/bear.mp4"
-
-	putPolicy := storage.PutPolicy{
-		Scope: bucket,
-	}
-	mac := qbox.NewMac(accessKey, secretKey)
-	upToken := putPolicy.UploadToken(mac)
-
-	cfg := storage.Config{}
-	// 空间对应的机房
-	cfg.Zone = &storage.ZoneHuadong
-	// 是否使用https域名
-	cfg.UseHTTPS = true
-	// 上传是否使用CDN上传加速
-	cfg.UseCdnDomains = false
-
-	// 构建表单上传的对象
-	formUploader := storage.NewFormUploader(&cfg)
-	ret := storage.PutRet{}
-
-	// 可选配置
-	putExtra := storage.PutExtra{
-		Params: map[string]string{
-			"x:name": "github logo",
-		},
-	}
-	err := formUploader.PutFile(context.Background(), &ret, upToken, key, localFile, &putExtra)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-	fmt.Println(ret.Key, ret.Hash)
-
 	c.JSON(http.StatusOK, PublishListResponse{
 		Response: common.Response{
 			StatusCode: 0,
