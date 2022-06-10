@@ -2,6 +2,7 @@ package controller
 
 import (
 	"dousheng/common"
+	"dousheng/service"
 	"encoding/base64"
 	"errors"
 	"fmt"
@@ -18,7 +19,7 @@ import (
 
 type PublishRequest struct {
 	Token string `form:"token" json:"token" binding:"required"`
-	Data  byte   `form:"data" json:"data" binding:"required"`
+	Data  []byte `form:"data" json:"data" binding:"required"`
 	Title string `form:"title" json:"title" binding:"required"`
 }
 
@@ -44,6 +45,47 @@ func init() {
 	idGen.InitIdWorker(1, 1)
 }
 
+func Publish(c *gin.Context) {
+	file, errd := c.FormFile("data")
+	errd, coverUrl, playUrl := UploadVideo(file)
+	if errd != nil {
+		c.JSON(http.StatusOK, common.Response{
+			StatusCode: common.ParamInvalid,
+			StatusMsg:  "Publish Parameter parsing error",
+		})
+		return
+	}
+	token, _ := c.GetPostForm("token")
+	strs := strings.Split(token, ":")
+	username := strs[0]
+	title, _ := c.GetPostForm("title")
+	u, _ := service.GetUserByUsername(username)
+	video := Video{
+		Id:            1,
+		Author:        *u,
+		PlayUrl:       "rd5met9ed.hn-bkt.clouddn.com" + "/" + playUrl,
+		CoverUrl:      "rd5met9ed.hn-bkt.clouddn.com" + "/" + coverUrl,
+		FavoriteCount: 0,
+		CommentCount:  0,
+		IsFavorite:    false,
+		Title:         title,
+	}
+	fmt.Println("video=%#v\n", video)
+	c.JSON(http.StatusOK, common.Response{
+		StatusCode: common.OK,
+		StatusMsg:  "Publish Success!",
+	})
+}
+
+func PublishList(c *gin.Context) {
+	c.JSON(http.StatusOK, PublishListResponse{
+		Response: common.Response{
+			StatusCode: 0,
+		},
+		VideoList: DemoVideos,
+	})
+}
+
 func IsVideoAllowed(suffix string) bool {
 	for _, fileExt := range videoFileExt {
 		if suffix == fileExt {
@@ -53,17 +95,17 @@ func IsVideoAllowed(suffix string) bool {
 	return false
 }
 
-func UploadVideo(file *multipart.FileHeader) (err error) {
+func UploadVideo(file *multipart.FileHeader) (err error, coverUrl string, playUrl string) {
 	//先处理输入
 	filename := file.Filename                      //获取文件名
 	indexOfDot := strings.LastIndex(filename, ".") //获取文件后缀名前的.的位置
 	if indexOfDot < 0 {
-		return errors.New("没有获取到文件的后缀名")
+		return errors.New("没有获取到文件的后缀名"), coverUrl, playUrl
 	}
 	suffix := filename[indexOfDot+1 : len(filename)] //获取后缀名
 	suffix = strings.ToLower(suffix)                 //后缀名统一小写处理
 	if !IsVideoAllowed(suffix) {
-		return errors.New("上传的文件不符合视频的格式")
+		return errors.New("上传的文件不符合视频的格式"), coverUrl, playUrl
 	}
 	fmt.Println("刚才上传的文件后缀名：" + suffix)
 	id, err := idGen.NextId()
@@ -84,14 +126,13 @@ func UploadVideo(file *multipart.FileHeader) (err error) {
 	//视频封面start
 	coverName := filename + "." + "jpg"           //封面的文件名
 	coverFolderName := "cover"                    //七牛云中存放图片的目录名。用于与文件名拼接，组成文件路径
-	photoKey := coverFolderName + "/" + coverName //封面的访问路径，我们通过此路径在七牛云空间中定位封面
-	saveJpgEntry := base64.StdEncoding.EncodeToString([]byte(bucket + ":" + photoKey))
+	coverKey := coverFolderName + "/" + coverName //封面的访问路径，我们通过此路径在七牛云空间中定位封面
+	saveJpgEntry := base64.StdEncoding.EncodeToString([]byte(bucket + ":" + coverKey))
 	putPolicy.PersistentOps = "vframe/jpg/offset/1|saveas/" + saveJpgEntry //取视频第1秒的截图
 	//end
 	putPolicy.Expires = 7200 //自定义凭证有效期（示例2小时，Expires 单位为秒，为上传凭证的有效时间）
 	mac := qbox.NewMac(accessKey, secretKey)
 	upToken := putPolicy.UploadToken(mac)
-	fmt.Printf("putPolicy=%#v\n", putPolicy)
 	cfg := storage.Config{}
 	// 空间对应的机房
 	cfg.Zone = &storage.ZoneHuanan
@@ -112,46 +153,11 @@ func UploadVideo(file *multipart.FileHeader) (err error) {
 	//file.size是要上传的文件大小
 	err = formUploader.Put(context.Background(), &ret, upToken, key, data, file.Size, &putExtra)
 	if err != nil {
-		fmt.Println(err)
-		return
+		return err, coverUrl, playUrl
 	}
-	fmt.Println(ret.Key, ret.Hash)
+	//fmt.Println(ret.Key, ret.Hash)
 
-	return err
-}
-func Publish(c *gin.Context) {
-
-	file, err := c.FormFile("data")
-	title, err := c.FormFile("title")
-	fmt.Println("title:")
-	fmt.Println(title)
-	token, err := c.FormFile("title")
-	fmt.Println("token:")
-	fmt.Println(token)
-	err = UploadVideo(file)
-	if err != nil {
-		c.JSON(http.StatusOK, common.Response{
-			StatusCode: common.ParamInvalid,
-			StatusMsg:  "Publish Parameter parsing error",
-		})
-		return
-	}
-	//var request PublishRequest
-	//if err := c.ShouldBind(&request); err != nil {
-	//	c.JSON(http.StatusOK, common.Response{
-	//		StatusCode: common.ParamInvalid,
-	//		StatusMsg:  "Publish Parameter parsing error",
-	//	})
-	//	return
-	//}
-
-}
-
-func PublishList(c *gin.Context) {
-	c.JSON(http.StatusOK, PublishListResponse{
-		Response: common.Response{
-			StatusCode: 0,
-		},
-		VideoList: DemoVideos,
-	})
+	coverUrl = coverKey
+	playUrl = key
+	return err, coverUrl, playUrl
 }
