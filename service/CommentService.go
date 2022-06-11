@@ -14,3 +14,16 @@ func GetCommentByVideoID(vid int64) (comment model.Comment) {
 	}
 	return u
 }
+
+func CreateComment(comment *model.Comment) {
+	res := database.MySQLDB.Create(&comment)
+	if res.Error != nil {
+		log.Println("Insert user failed!" + res.Error.Error())
+	}
+	//return user
+}
+
+func DeleteComment(cid int64) {
+	database.MySQLDB.Delete(&model.Comment{}, cid)
+	//return user
+}
