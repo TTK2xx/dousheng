@@ -30,6 +30,9 @@ type PublishResponse struct {
 
 var domainName = "rd5met9ed.hn-bkt.clouddn.com"
 var bucket = "top-20"
+
+//var domainName = "qiniu.jianggang.top"
+//var bucket = "haiwai-20"
 var accessKey = "ANvRMQN-FX6C6abeKAYxqAq1qq9je2x1UAmlLjFA"
 var secretKey = "RhH86hgmwDphJxs5jBa1yUzZM7ydAch7msd-_VSi"
 var videoFileExt = []string{"mp4", "flv"} //此处可根据需要添加格式
@@ -41,12 +44,19 @@ func init() {
 }
 
 func Publish(c *gin.Context) {
-	file, errd := c.FormFile("data")
+	file, err := c.FormFile("data")
+	if err != nil {
+		c.JSON(http.StatusOK, common.Response{
+			StatusCode: common.ParamInvalid,
+			StatusMsg:  "FormFile parsing  error",
+		})
+		return
+	}
 	errd, coverUrl, playUrl := UploadVideo(file)
 	if errd != nil {
 		c.JSON(http.StatusOK, common.Response{
 			StatusCode: common.ParamInvalid,
-			StatusMsg:  "Publish Parameter parsing error",
+			StatusMsg:  "UploadVideo  error",
 		})
 		return
 	}
@@ -112,7 +122,8 @@ func UploadVideo(file *multipart.FileHeader) (err error, coverUrl string, playUr
 	coverFolderName := "cover"                    //七牛云中存放图片的目录名。用于与文件名拼接，组成文件路径
 	coverKey := coverFolderName + "/" + coverName //封面的访问路径，我们通过此路径在七牛云空间中定位封面
 	saveJpgEntry := base64.StdEncoding.EncodeToString([]byte(bucket + ":" + coverKey))
-	putPolicy.PersistentOps = "vframe/jpg/offset/1|saveas/" + saveJpgEntry //取视频第1秒的截图
+	putPolicy.PersistentOps = "vframe/jpg/offset/1/w/534/h/949|saveas/" + saveJpgEntry //取视频第1秒的截图
+	//   "vframe/jpg/offset/7/w/480/h/360",
 	//end
 	putPolicy.Expires = 7200 //自定义凭证有效期（示例2小时，Expires 单位为秒，为上传凭证的有效时间）
 	mac := qbox.NewMac(accessKey, secretKey)

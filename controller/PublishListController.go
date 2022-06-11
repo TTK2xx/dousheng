@@ -17,18 +17,19 @@ type PublishListResponse struct {
 	VideoList []model.Video `json:"video_list"`
 }
 
-func PublishList(c *gin.Context) {
+func PublishList(c *gin.Context) { //我发布的视频列表
 	//videos := service.GetAllVideos()
 	//c.JSON(http.StatusOK, FeedResponse{
 	//	Response: common.Response{
-	//		StatusCode: 0,
+	//		StatusCode: common.OK,
+	//		StatusMsg:  "Publish Success!",
 	//	},
 	//	VideoList: videos,
-	//
 	//})
 	c.JSON(http.StatusOK, PublishListResponse{
 		Response: common.Response{
-			StatusCode: 0,
+			StatusCode: common.OK,
+			StatusMsg:  "",
 		},
 		VideoList: DemoVideos,
 	})
