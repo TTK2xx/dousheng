@@ -13,3 +13,18 @@ func CreateVideo(video *model.Video) {
 	}
 
 }
+func GetVideoById(Id int64) (video *model.Video) {
+	var v model.Video
+	res := database.MySQLDB.Model(&model.Video{}).Where("id = ?", Id).First(&v)
+	if res.Error != nil {
+		log.Println(res.Error.Error())
+	}
+	return &v
+}
+func GetAllVideos() (video []model.Video) {
+	var videos []model.Video
+	database.MySQLDB.Model(&model.Video{}).Find(&videos)
+	//fmt.Println("%#v", videos)
+
+	return videos
+}

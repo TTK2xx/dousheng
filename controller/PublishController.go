@@ -58,7 +58,7 @@ func Publish(c *gin.Context) {
 
 	//存数据库之后，再根据数据库隐式生成的ID，存入video的ID
 	video := model.Video{
-		Author:        u.ID,
+		Author:        *u,
 		PlayUrl:       domainName + "/" + playUrl,
 		CoverUrl:      domainName + "/" + coverUrl,
 		FavoriteCount: 0,

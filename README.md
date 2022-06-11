@@ -1,11 +1,6 @@
-建video表
+有这个语句，修改struct，数据库会自动添加列。表空时，就是建表
 
 ```
-create table t_video
-( id int not null primary key auto_increment,author int not null,play_url varchar(1000),cover_url varchar(1000),
- favorite_count bigint(64), comment_count bigint(64), 
- is_favorite bool, title varchar(1000),
- foreign key(author) references t_user(id)
-)ENGINE=InnoDB DEFAULT CHARSET=utf8;
+MySQLDB.AutoMigrate(&model.User{}, &model.Video{})
 ```
 

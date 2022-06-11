@@ -18,6 +18,14 @@ type PublishListResponse struct {
 }
 
 func PublishList(c *gin.Context) {
+	//videos := service.GetAllVideos()
+	//c.JSON(http.StatusOK, FeedResponse{
+	//	Response: common.Response{
+	//		StatusCode: 0,
+	//	},
+	//	VideoList: videos,
+	//
+	//})
 	c.JSON(http.StatusOK, PublishListResponse{
 		Response: common.Response{
 			StatusCode: 0,
