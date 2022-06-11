@@ -12,7 +12,7 @@ var DemoVideos = []model.Video{
 	{
 		Id:            1,
 		Author:        DemoUser,
-		PlayUrl:       "https://www.w3schools.com/html/movie.mp4",
+		PlayUrl:       "http://10.0.2.2:8080/static/bear.mp4",
 		CoverUrl:      "http://10.0.2.2:8080/static/hcl_1.jpg",
 		FavoriteCount: 2,
 		CommentCount:  3,
@@ -22,7 +22,7 @@ var DemoVideos = []model.Video{
 	{
 		Id:            2,
 		Author:        DemoUser,
-		PlayUrl:       "http://rd5met9ed.hn-bkt.clouddn.com/video/7630555723214229504.mp4",
+		PlayUrl:       "http://10.0.2.2:8080/static/bear.mp4",
 		CoverUrl:      "http://10.0.2.2:8080/static/hcl_1.jpg",
 		FavoriteCount: 44,
 		CommentCount:  55,
