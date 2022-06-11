@@ -23,6 +23,10 @@ func InitMySQL(cfg *config.Config) (err error) {
 		},
 	})
 
-	MySQLDB.AutoMigrate(&model.User{}, &model.Video{})
+	MySQLDB.AutoMigrate(&model.User{})
+
+	// 增加评论表
+	MySQLDB.AutoMigrate(&model.Comment{})
+
 	return
 }
