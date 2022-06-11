@@ -3,10 +3,8 @@ package controller
 import (
 	"dousheng/common"
 	"dousheng/model"
-	"dousheng/service"
 	"github.com/gin-gonic/gin"
 	"net/http"
-	"time"
 )
 
 type FeedResponse struct {
@@ -17,12 +15,19 @@ type FeedResponse struct {
 
 // Feed same demo video list for every request
 func Feed(c *gin.Context) {
-	videos := service.GetAllVideos()
-	c.JSON(http.StatusOK, FeedResponse{
+	c.JSON(http.StatusOK, PublishListResponse{
 		Response: common.Response{
-			StatusCode: 0,
+			StatusCode: common.OK,
+			StatusMsg:  "",
 		},
-		VideoList: videos,
-		NextTime:  time.Now().Unix(),
+		VideoList: DemoVideos,
 	})
+	//videos := service.GetAllVideos()
+	//c.JSON(http.StatusOK, FeedResponse{
+	//	Response: common.Response{
+	//		StatusCode: 0,
+	//	},
+	//	VideoList: videos,
+	//	NextTime:  time.Now().Unix(),
+	//})
 }

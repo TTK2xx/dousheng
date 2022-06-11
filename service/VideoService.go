@@ -3,6 +3,7 @@ package service
 import (
 	"dousheng/database"
 	"dousheng/model"
+	"fmt"
 	"log"
 )
 
@@ -24,7 +25,7 @@ func GetVideoById(Id int64) (video *model.Video) {
 func GetAllVideos() (video []model.Video) {
 	var videos []model.Video
 	database.MySQLDB.Model(&model.Video{}).Find(&videos)
-	//fmt.Println("%#v", videos)
+	fmt.Println("%#v", videos)
 
 	return videos
 }
