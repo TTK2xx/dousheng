@@ -62,10 +62,10 @@ func Feed(ctx *gin.Context) {
 		} else {
 			nextTime = time.Now().Unix()
 		}
-		var ids = make([]int64, len(videoList))
-		for i, v := range videoList {
-			ids[i] = v.AuthorID
-		}
+		//var ids = make([]int64, len(videoList))
+		//for i, v := range videoList {
+		//	ids[i] = v.AuthorID
+		//}
 		// 判断是否有token
 		var loginID int64
 		loginID = 0
@@ -74,12 +74,14 @@ func Feed(ctx *gin.Context) {
 			u, _ := service.GetUserByUsername(username)
 			loginID = u.ID
 		}
-		_, userInfoList := service.GetUserInfoListByIDs(loginID, ids)
+		//_, userInfoList := service.GetUserInfoListByIDs(loginID, ids)
 		var responseList = make([]VideoResponse, len(videoList))
 		for i, v := range videoList {
+			_, userInfo := service.GetUserInfoByUserID(loginID, v.AuthorID)
 			responseList[i] = VideoResponse{
-				Id:            v.Id,
-				Author:        userInfoList[i],
+				Id: v.Id,
+				//Author:        userInfoList[i],
+				Author:        userInfo,
 				PlayUrl:       v.PlayUrl,
 				CoverUrl:      v.CoverUrl,
 				FavoriteCount: v.FavoriteCount,
