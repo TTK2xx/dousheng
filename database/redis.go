@@ -12,6 +12,8 @@ var RedisDB *redis.Client
 const SPLIT = ":"
 const PREFIX_FOLLOW = "follow"
 const PREFIX_FOLLOWER = "follower"
+const PREFIX_FAVORITE = "favorite"
+const PREFIX_VIDEO = "video"
 
 func InitRedisClient(cfg *config.Config) error {
 	redisCfg := cfg.Redis
@@ -35,4 +37,12 @@ func GetFollowKey(userId int64) string {
 
 func GetFollowerKey(userId int64) string {
 	return strconv.FormatInt(userId, 10) + SPLIT + PREFIX_FOLLOWER
+}
+
+func GetFavoriteKey(userId int64) string {
+	return strconv.FormatInt(userId, 10) + SPLIT + PREFIX_FAVORITE
+}
+
+func GetVideoKey(videoId int64) string {
+	return strconv.FormatInt(videoId, 10) + SPLIT + PREFIX_VIDEO
 }
