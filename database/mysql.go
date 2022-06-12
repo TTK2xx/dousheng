@@ -28,5 +28,7 @@ func InitMySQL(cfg *config.Config) (err error) {
 	// 增加评论表
 	MySQLDB.AutoMigrate(&model.Comment{})
 
+	MySQLDB.AutoMigrate(&model.Video{})
+
 	return
 }
