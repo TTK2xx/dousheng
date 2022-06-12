@@ -16,7 +16,7 @@ type FeedRequest struct {
 }
 
 type VideoResponse struct {
-	Id            int64          `json:"video_id,omitempty"`
+	Id            int64          `json:"id,omitempty"`
 	Author        model.UserInfo `json:"author"`
 	PlayUrl       string         `json:"play_url" json:"play_url,omitempty"`
 	CoverUrl      string         `json:"cover_url,omitempty"`
