@@ -10,12 +10,11 @@ import (
 )
 
 type CommentActionRequest struct {
-	UserID      int64  `form:"user_id" json:"user_id" binding:"required"`
 	Token       string `form:"token" json:"token" binding:"required"`
 	VideoID     int64  `form:"video_id" json:"video_id" binding:"required"`
 	ActionType  int32  `form:"action_type" json:"action_type" binding:"required"`
-	CommentText string `form:"comment_text" json:"comment_text" binding:"optional"`
-	CommentID   int64  `form:"comment_id" json:"comment_id" binding:"optional"`
+	CommentText string `form:"comment_text" json:"comment_text" `
+	CommentID   int64  `form:"comment_id" json:"comment_id" `
 }
 
 type CommentActionResponse struct {
@@ -70,7 +69,7 @@ type CommentListRequest struct {
 
 type CommentListResponse struct {
 	common.Response
-	CommentList model.Comment `json:"comment_list"`
+	CommentList []model.Comment `json:"comment_list"`
 }
 
 func CommentList(c *gin.Context) {

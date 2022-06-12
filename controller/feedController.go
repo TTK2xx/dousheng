@@ -15,7 +15,7 @@ type FeedResponse struct {
 
 // Feed same demo video list for every request
 func Feed(c *gin.Context) {
-	c.JSON(http.StatusOK, PublishListResponse{
+	c.JSON(http.StatusOK, FeedResponse{
 		Response: common.Response{
 			StatusCode: common.OK,
 			StatusMsg:  "",
