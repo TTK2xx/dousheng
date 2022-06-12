@@ -13,7 +13,7 @@ import (
 type CommentActionRequest struct {
 	Token       string `form:"token" json:"token" binding:"required"`
 	VideoID     int64  `form:"video_id" json:"video_id" binding:"required"`
-	ActionType  int32  `form:"action_type" json:"action_type" binding:"required, oneof=1 2"`
+	ActionType  int32  `form:"action_type" json:"action_type" binding:"required"`
 	CommentText string `form:"comment_text" json:"comment_text" `
 	CommentID   int64  `form:"comment_id" json:"comment_id" `
 }

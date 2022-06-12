@@ -19,18 +19,19 @@ type FavoriteListResponse struct {
 	VideoList []model.Video `json:"video_list,omitempty" form:"video_list"`
 }
 
+// 解决接口不一致问题
+
 type FavoriteActionRequest struct {
-	UserID     int64  `json:"user_id" form:"user_id" binding:"required"`
+	//UserID     int64  `json:"user_id" form:"user_id" binding:"required"`
 	Token      string `json:"token" form:"token" binding:"required"`
 	VideoID    int64  `form:"video_id" json:"video_id" binding:"required"`
-	ActionType int32  `json:"action_type" form:"action_type" binding:"required,oneof=1 2"`
+	ActionType int32  `json:"action_type" form:"action_type" binding:"required"`
 }
 
 type FavoriteActionResponse struct {
 	common.Response
 }
 
-//函数内容待修改
 func FavoriteAction(ctx *gin.Context) {
 	var request FavoriteActionRequest
 	if err := ctx.ShouldBind(&request); err != nil {

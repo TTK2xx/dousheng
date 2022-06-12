@@ -22,6 +22,7 @@ func GetCommentByVideoID(login int64, vid int64) []model.CommentInfo {
 	var commentInfoList = make([]model.CommentInfo, len(u))
 	for i, v := range userInfoList {
 		commentInfoList[i] = model.CommentInfo{
+			VideoID:    vid,
 			Content:    u[i].Content,
 			CreateDate: u[i].CreateDate,
 			CommentID:  u[i].CommentID,
