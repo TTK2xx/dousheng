@@ -20,7 +20,9 @@ func main() {
 	sqlDB, _ := database.MySQLDB.DB()
 	defer sqlDB.Close()
 	// 连接redis
-
+	if err := database.InitRedisClient(cfg); err != nil {
+		panic("Reids connect error!" + err.Error())
+	}
 	// 连接MQ
 
 	// 初始化路由

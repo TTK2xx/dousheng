@@ -9,6 +9,7 @@ import (
 type Config struct {
 	AppPort  string         `json:"app_port"`
 	Database DatabaseConfig `json:"database"`
+	Redis    RedisConfig    `json:"redis"`
 }
 
 type DatabaseConfig struct {
@@ -20,6 +21,13 @@ type DatabaseConfig struct {
 	DbName   string `json:"db_name"`
 	Charset  string `json:"charset"`
 	ShowSql  bool   `json:"show_sql"`
+}
+
+type RedisConfig struct {
+	Address  string `json:"address"`
+	Password string `json:"password"`
+	DB       int    `json:"db"`
+	PoolSize int    `json:"pool_size"`
 }
 
 var cfg *Config = nil
