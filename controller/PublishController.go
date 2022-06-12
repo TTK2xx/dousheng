@@ -189,16 +189,15 @@ func PublishList(ctx *gin.Context) { //我发布的视频列表
 			StatusMsg:  "OperationFailed",
 		})
 	} else {
-		var ids = make([]int64, len(videoList))
-		for i, v := range videoList {
-			ids[i] = v.AuthorID
-		}
-		_, userInfoList := service.GetUserInfoListByIDs(u.ID, ids)
+		var userInfo model.UserInfo
 		var responseList = make([]VideoResponse, len(videoList))
 		for i, v := range videoList {
+			if i == 0 {
+				_, userInfo = service.GetUserInfoByUserID(u.ID, v.AuthorID)
+			}
 			responseList[i] = VideoResponse{
 				Id:            v.Id,
-				Author:        userInfoList[i],
+				Author:        userInfo,
 				PlayUrl:       v.PlayUrl,
 				CoverUrl:      v.CoverUrl,
 				FavoriteCount: v.FavoriteCount,
