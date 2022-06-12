@@ -22,21 +22,13 @@ type UserLoginResponse struct {
 
 type UserResponse struct {
 	common.Response
-	User UserInfo `json:"user"`
+	User model.UserInfo `json:"user"`
 }
 
-type UserInfo struct {
-	Id            int64  `json:"id,omitempty"`
-	Name          string `json:"name,omitempty"`
-	FollowCount   int64  `json:"follow_count,omitempty"`
-	FollowerCount int64  `json:"follower_count,omitempty"`
-	IsFollow      bool   `json:"is_follow,omitempty"`
-}
-
-func Register(c *gin.Context) {
+func Register(ctx *gin.Context) {
 	var request UserLoginRequest
-	if err := c.ShouldBind(&request); err != nil {
-		c.JSON(http.StatusOK, common.Response{
+	if err := ctx.ShouldBind(&request); err != nil {
+		ctx.JSON(http.StatusOK, common.Response{
 			StatusCode: common.ParamInvalid,
 			StatusMsg:  "Parameter parsing error",
 		})
@@ -47,7 +39,7 @@ func Register(c *gin.Context) {
 
 	// 检查用户是否存在
 	if exist := service.IsUserExisted(request.Username); exist {
-		c.JSON(http.StatusOK, common.Response{
+		ctx.JSON(http.StatusOK, common.Response{
 			StatusCode: common.UserHasExisted,
 			StatusMsg:  "User has existed",
 		})
@@ -59,7 +51,7 @@ func Register(c *gin.Context) {
 		Password: request.Password,
 	}
 	service.CreateUser(&newUser)
-	c.JSON(http.StatusOK, UserLoginResponse{
+	ctx.JSON(http.StatusOK, UserLoginResponse{
 		Response: common.Response{
 			StatusCode: common.OK,
 			StatusMsg:  "success",
@@ -69,10 +61,10 @@ func Register(c *gin.Context) {
 	})
 }
 
-func Login(c *gin.Context) {
+func Login(ctx *gin.Context) {
 	var request UserLoginRequest
-	if err := c.ShouldBind(&request); err != nil {
-		c.JSON(http.StatusOK, common.Response{
+	if err := ctx.ShouldBind(&request); err != nil {
+		ctx.JSON(http.StatusOK, common.Response{
 			StatusCode: common.ParamInvalid,
 			StatusMsg:  "Parameter parsing error",
 		})
@@ -81,7 +73,7 @@ func Login(c *gin.Context) {
 	// 检查用户是否存在
 	u, _ := service.GetUserByUsername(request.Username)
 	if u.Username != request.Username {
-		c.JSON(http.StatusOK, common.Response{
+		ctx.JSON(http.StatusOK, common.Response{
 			StatusCode: common.UserNotExisted,
 			StatusMsg:  "User not existed",
 		})
@@ -89,7 +81,7 @@ func Login(c *gin.Context) {
 	}
 	// 登录状态保持 session? jwt?
 	if u.Password == request.Password {
-		c.JSON(http.StatusOK, UserLoginResponse{
+		ctx.JSON(http.StatusOK, UserLoginResponse{
 			Response: common.Response{
 				StatusCode: common.OK,
 				StatusMsg:  "success",
@@ -98,7 +90,7 @@ func Login(c *gin.Context) {
 			Token:  u.Username + ":" + u.Password,
 		})
 	} else {
-		c.JSON(http.StatusOK, UserLoginResponse{
+		ctx.JSON(http.StatusOK, UserLoginResponse{
 			Response: common.Response{
 				StatusCode: common.WrongPassword,
 				StatusMsg:  "Wrong password",
@@ -107,29 +99,32 @@ func Login(c *gin.Context) {
 	}
 }
 
-func User(c *gin.Context) {
-	token := c.Query("token")
+func User(ctx *gin.Context) {
+	token := ctx.Query("token")
 	strs := strings.Split(token, ":")
 	username := strs[0]
 	u, _ := service.GetUserByUsername(username)
 	if u.Username != username {
-		c.JSON(http.StatusOK, common.Response{
+		ctx.JSON(http.StatusOK, common.Response{
 			StatusCode: common.UserNotExisted,
 			StatusMsg:  "User not existed",
 		})
 		return
 	}
-	UserInfo := UserInfo{
-		Id:            u.ID,
-		Name:          u.Username,
-		FollowCount:   99,
-		FollowerCount: 66,
-		IsFollow:      false,
+	if err, userInfo := service.GetUserInfoByUserID(u.ID, u.ID); err != nil {
+		ctx.JSON(http.StatusOK, UserResponse{
+			Response: common.Response{
+				StatusCode: common.OperationFailed,
+			},
+			User: userInfo,
+		})
+	} else {
+		ctx.JSON(http.StatusOK, UserResponse{
+			Response: common.Response{
+				StatusCode: common.OK,
+			},
+			User: userInfo,
+		})
 	}
-	c.JSON(http.StatusOK, UserResponse{
-		Response: common.Response{
-			StatusCode: common.OK,
-		},
-		User: UserInfo,
-	})
+
 }
