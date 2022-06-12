@@ -6,6 +6,7 @@ import (
 	"dousheng/service"
 	"github.com/gin-gonic/gin"
 	"net/http"
+	"strings"
 	"time"
 )
 
@@ -19,7 +20,7 @@ type CommentActionRequest struct {
 
 type CommentActionResponse struct {
 	common.Response
-	Comment model.Comment `json:"comment"`
+	Comment model.CommentInfo `json:"comment"`
 }
 
 func CommentAction(c *gin.Context) {
@@ -34,21 +35,44 @@ func CommentAction(c *gin.Context) {
 
 	choose := request.ActionType
 	if choose == 1 { // 发布评论
+		// 获取userid
+		strs := strings.Split(request.Token, ":")
+		username := strs[0]
+		u, _ := service.GetUserByUsername(username)
+		if u.Username != username {
+			c.JSON(http.StatusOK, common.Response{
+				StatusCode: common.UserNotExisted,
+				StatusMsg:  "Login Token error",
+			})
+			return
+		}
+
+		// 获取userinfo
+		_, newUserInfo := service.GetUserInfoByUserID(u.ID, u.ID)
+
 		newComment := model.Comment{
 			VideoID:    request.VideoID,
 			Content:    request.CommentText,
 			CreateDate: time.Now().Format("01-02"),
-			// 等待user信息获取函数
-			//CommentUser: ,
+			UserID:     u.ID,
 		}
 
 		service.CreateComment(&newComment)
+
+		newCommentInfo := model.CommentInfo{
+			VideoID:    request.VideoID,
+			Content:    request.CommentText,
+			CreateDate: newComment.CreateDate,
+			User:       newUserInfo,
+			CommentID:  newComment.CommentID,
+		}
+
 		c.JSON(http.StatusOK, CommentActionResponse{
 			Response: common.Response{
 				StatusCode: common.OK,
 				StatusMsg:  "success",
 			},
-			Comment: newComment,
+			Comment: newCommentInfo,
 		})
 	} else if choose == 2 { // 删除评论
 		service.DeleteComment(request.CommentID)
@@ -69,7 +93,7 @@ type CommentListRequest struct {
 
 type CommentListResponse struct {
 	common.Response
-	CommentList []model.Comment `json:"comment_list"`
+	CommentList []model.CommentInfo `json:"comment_list"`
 }
 
 func CommentList(c *gin.Context) {
@@ -81,10 +105,20 @@ func CommentList(c *gin.Context) {
 		})
 		return
 	}
-
+	// 获取userid
+	strs := strings.Split(request.Token, ":")
+	username := strs[0]
+	u, _ := service.GetUserByUsername(username)
+	if u.Username != username {
+		c.JSON(http.StatusOK, common.Response{
+			StatusCode: common.UserNotExisted,
+			StatusMsg:  "Login Token error",
+		})
+		return
+	}
 	vid := request.VideoID
+	newCommentList := service.GetCommentByVideoID(u.ID, vid)
 
-	newCommentList := service.GetCommentByVideoID(vid)
 	c.JSON(http.StatusOK, CommentListResponse{
 		Response: common.Response{
 			StatusCode: common.OK,

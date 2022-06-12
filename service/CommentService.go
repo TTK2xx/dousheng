@@ -6,13 +6,30 @@ import (
 	"log"
 )
 
-func GetCommentByVideoID(vid int64) (comment []model.Comment) {
+func GetCommentByVideoID(login int64, vid int64) []model.CommentInfo {
 	var u []model.Comment
 	res := database.MySQLDB.Model(&model.Comment{}).Where("video_id = ?", vid).Find(&u)
 	if res.Error != nil {
 		log.Println(res.Error.Error())
 	}
-	return u
+
+	var ids = make([]int64, len(u))
+	for i, v := range u {
+		ids[i] = v.UserID
+	}
+
+	_, userInfoList := GetUserInfoListByIDs(login, ids)
+	var commentInfoList = make([]model.CommentInfo, len(u))
+	for i, v := range userInfoList {
+		commentInfoList[i] = model.CommentInfo{
+			Content:    u[i].Content,
+			CreateDate: u[i].CreateDate,
+			CommentID:  u[i].CommentID,
+			User:       v,
+		}
+	}
+
+	return commentInfoList
 }
 
 func CreateComment(comment *model.Comment) {

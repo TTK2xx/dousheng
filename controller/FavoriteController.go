@@ -16,7 +16,7 @@ type FavoriteListRequest struct {
 
 type FavoriteListResponse struct {
 	common.Response
-	VideoList []model.VideoInfo `json:"video_list,omitempty" form:"video_list"`
+	VideoList []model.Video `json:"video_list,omitempty" form:"video_list"`
 }
 
 type FavoriteActionRequest struct {
