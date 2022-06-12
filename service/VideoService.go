@@ -3,7 +3,6 @@ package service
 import (
 	"dousheng/database"
 	"dousheng/model"
-	"fmt"
 	"log"
 )
 
@@ -22,10 +21,21 @@ func GetVideoById(Id int64) (video *model.Video) {
 	}
 	return &v
 }
-func GetAllVideos() (video []model.Video) {
-	var videos []model.Video
-	database.MySQLDB.Model(&model.Video{}).Find(&videos)
-	fmt.Println("%#v", videos)
 
-	return videos
+func GetVideoListByTime(latestTime int64, limit int) (error, []model.Video) {
+	var videoList []model.Video
+	res := database.MySQLDB.Model(&model.Video{}).Where("publish_time < ?", latestTime).Order("publish_time DESC").Limit(limit).Find(&videoList)
+	if res.Error != nil {
+		log.Println(res.Error.Error())
+	}
+	return res.Error, videoList
+}
+
+func GetVideoListByUserID(userID int64) (error, []model.Video) {
+	var videoList []model.Video
+	res := database.MySQLDB.Model(&model.Video{}).Where("author_id = ?", userID).Find(&videoList)
+	if res.Error != nil {
+		log.Println(res.Error.Error())
+	}
+	return res.Error, videoList
 }

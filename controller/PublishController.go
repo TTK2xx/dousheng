@@ -16,6 +16,7 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 )
 
 type PublishRequest struct {
@@ -24,11 +25,16 @@ type PublishRequest struct {
 	Title string `form:"title" json:"title" binding:"required"`
 }
 
+type PublishListResponse struct {
+	common.Response
+	VideoList []VideoResponse `json:"video_list"`
+}
+
 type PublishResponse struct {
 	common.Response
 }
 
-var domainName = "rd5met9ed.hn-bkt.clouddn.com"
+var domainName = "http://rd5met9ed.hn-bkt.clouddn.com"
 var bucket = "top-20"
 
 //var domainName = "qiniu.jianggang.top"
@@ -68,13 +74,13 @@ func Publish(c *gin.Context) {
 
 	//存数据库之后，再根据数据库隐式生成的ID，存入video的ID
 	video := model.Video{
-		Author:        *u,
+		AuthorID:      u.ID,
 		PlayUrl:       domainName + "/" + playUrl,
 		CoverUrl:      domainName + "/" + coverUrl,
 		FavoriteCount: 0,
 		CommentCount:  0,
-		IsFavorite:    false,
 		Title:         title,
+		PublishTime:   time.Now().Unix(),
 	}
 	fmt.Println("video=%#v\n", video)
 	service.CreateVideo(&video)
@@ -155,4 +161,57 @@ func UploadVideo(file *multipart.FileHeader) (err error, coverUrl string, playUr
 	coverUrl = coverKey
 	playUrl = key
 	return err, coverUrl, playUrl
+}
+
+func PublishList(ctx *gin.Context) { //我发布的视频列表
+	var request RelationRequest
+	if err := ctx.ShouldBind(&request); err != nil {
+		ctx.JSON(http.StatusOK, common.Response{
+			StatusCode: common.ParamInvalid,
+			StatusMsg:  "Parameter parsing error",
+		})
+		return
+	}
+	// 判断用户登录
+	strs := strings.Split(request.Token, ":")
+	username := strs[0]
+	u, _ := service.GetUserByUsername(username)
+	if u.Username != username {
+		ctx.JSON(http.StatusOK, common.Response{
+			StatusCode: common.UserNotExisted,
+			StatusMsg:  "Login Token error",
+		})
+		return
+	}
+	if err, videoList := service.GetVideoListByUserID(u.ID); err != nil {
+		ctx.JSON(http.StatusOK, common.Response{
+			StatusCode: common.OperationFailed,
+			StatusMsg:  "OperationFailed",
+		})
+	} else {
+		var ids = make([]int64, len(videoList))
+		for i, v := range videoList {
+			ids[i] = v.AuthorID
+		}
+		_, userInfoList := service.GetUserInfoListByIDs(u.ID, ids)
+		var responseList = make([]VideoResponse, len(videoList))
+		for i, v := range videoList {
+			responseList[i] = VideoResponse{
+				Id:            v.Id,
+				Author:        userInfoList[i],
+				PlayUrl:       v.PlayUrl,
+				CoverUrl:      v.CoverUrl,
+				FavoriteCount: v.FavoriteCount,
+				CommentCount:  v.CommentCount,
+				Title:         v.Title,
+			}
+		}
+		ctx.JSON(http.StatusOK, PublishListResponse{
+			Response: common.Response{
+				StatusCode: common.OK,
+				StatusMsg:  "Success",
+			},
+			VideoList: responseList,
+		})
+	}
 }
