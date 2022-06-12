@@ -82,24 +82,8 @@ func CommentList(c *gin.Context) {
 		return
 	}
 
-	// 用户鉴权ID处理
-	/*
-	 * 待处理
-	 * 待处理
-	 */
-
-	//
-
 	vid := request.VideoID
-	// 参数验证
 
-	// 检查视频ID是否存在
-	/*
-	 * 待处理
-	 * 待处理
-	 */
-
-	//
 	newCommentList := service.GetCommentByVideoID(vid)
 	c.JSON(http.StatusOK, CommentListResponse{
 		Response: common.Response{
