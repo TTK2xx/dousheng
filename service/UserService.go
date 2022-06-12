@@ -9,6 +9,7 @@ import (
 	"time"
 )
 
+// 通过用户名返回UserInfo
 func GetUserByUsername(username string) (user *model.User, err error) {
 	var u model.User
 	res := database.MySQLDB.Model(&model.User{}).Where("username = ?", username).First(&u)
