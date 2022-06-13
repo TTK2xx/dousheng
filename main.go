@@ -3,7 +3,9 @@ package main
 import (
 	"dousheng/config"
 	"dousheng/database"
+	"dousheng/logger"
 	"dousheng/router"
+	"fmt"
 	"github.com/gin-gonic/gin"
 )
 
@@ -13,20 +15,27 @@ func main() {
 	if err != nil {
 		panic("Configuration file parse error! " + err.Error())
 	}
+	// 初始化日志
+	if err := logger.InitLogger(cfg); err != nil {
+		fmt.Printf("init logger failed! \n", err.Error())
+		return
+	}
 	// 连接Mysql
 	if err := database.InitMySQL(cfg); err != nil {
-		panic("MySQL connect error!" + err.Error())
+		fmt.Printf("MySQL connect error! \n" + err.Error())
+		return
 	}
 	sqlDB, _ := database.MySQLDB.DB()
 	defer sqlDB.Close()
 	// 连接redis
 	if err := database.InitRedisClient(cfg); err != nil {
-		panic("Reids connect error!" + err.Error())
+		fmt.Printf("Reids connect error! \n" + err.Error())
+		return
 	}
-	// 连接MQ
-
 	// 初始化路由
 	r := gin.Default()
+	// 注册zap日志相关中间件
+	r.Use(logger.GinLogger(), logger.GinRecovery(true))
 	router.InitRouter(r)
 
 	r.Run(cfg.AppPort)
