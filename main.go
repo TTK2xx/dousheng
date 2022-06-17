@@ -5,6 +5,7 @@ import (
 	"dousheng/database"
 	"dousheng/logger"
 	"dousheng/router"
+	"dousheng/slowflake"
 	"fmt"
 	"github.com/gin-gonic/gin"
 )
@@ -32,6 +33,12 @@ func main() {
 		fmt.Printf("Reids connect error! \n" + err.Error())
 		return
 	}
+	// 加载 雪花 id
+	if err := slowflake.Init(); err != nil {
+		fmt.Printf("init redis failed, err: \n" + err.Error())
+		return
+	}
+
 	// 初始化路由
 	r := gin.Default()
 	// 注册zap日志相关中间件
