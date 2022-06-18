@@ -2,10 +2,9 @@ package controller
 
 import (
 	"dousheng/common"
-	"dousheng/md5"
 	"dousheng/model"
 	"dousheng/service"
-	"dousheng/slowflake"
+	"dousheng/utils"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"strings"
@@ -47,11 +46,14 @@ func Register(ctx *gin.Context) {
 		})
 		return
 	}
-	//
+	hashPassword, err := utils.PasswordHash(request.Password)
+	if err != nil {
+		return
+	}
 	newUser := model.User{
-		ID:       slowflake.GenID(),
+		ID:       utils.GenID(),
 		Username: request.Username,
-		Password: md5.Md5(request.Password),
+		Password: hashPassword,
 	}
 	service.CreateUser(&newUser)
 	ctx.JSON(http.StatusOK, UserLoginResponse{
@@ -83,7 +85,7 @@ func Login(ctx *gin.Context) {
 		return
 	}
 	// 登录状态保持 session? jwt?
-	if md5.Md5(u.Password) == request.Password {
+	if utils.PasswordVerify(request.Password, u.Password) {
 		ctx.JSON(http.StatusOK, UserLoginResponse{
 			Response: common.Response{
 				StatusCode: common.OK,

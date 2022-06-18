@@ -5,7 +5,7 @@ import (
 	"dousheng/database"
 	"dousheng/logger"
 	"dousheng/router"
-	"dousheng/slowflake"
+	"dousheng/utils"
 	"fmt"
 	"github.com/gin-gonic/gin"
 )
@@ -34,7 +34,7 @@ func main() {
 		return
 	}
 	// 加载 雪花 id
-	if err := slowflake.Init(); err != nil {
+	if err := utils.Init(); err != nil {
 		fmt.Printf("init redis failed, err: \n" + err.Error())
 		return
 	}
