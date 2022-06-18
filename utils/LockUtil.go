@@ -1,7 +1,9 @@
 package utils
 
 import (
+	"crypto/md5"
 	"dousheng/database"
+	"encoding/hex"
 	sn "github.com/bwmarrin/snowflake"
 	"golang.org/x/crypto/bcrypt"
 	"log"
@@ -40,6 +42,13 @@ func PasswordVerify(password, hash string) bool {
 	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
 
 	return err == nil
+}
+
+// 返回一个32位md5加密后的字符串
+func Md5(str string) string {
+	h := md5.New()
+	h.Write([]byte(str))
+	return hex.EncodeToString(h.Sum(nil))
 }
 
 var mutex sync.Mutex
