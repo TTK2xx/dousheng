@@ -2,12 +2,15 @@ package controller
 
 import (
 	"dousheng/common"
+	"dousheng/middleware"
 	"dousheng/model"
 	"dousheng/service"
 	"dousheng/utils"
+	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
+	"log"
 	"net/http"
-	"strings"
+	"time"
 )
 
 type UserLoginRequest struct {
@@ -35,7 +38,6 @@ func Register(ctx *gin.Context) {
 		})
 		return
 	}
-	token := request.Username + ":" + request.Password
 	// 参数验证
 
 	// 检查用户是否存在
@@ -56,6 +58,7 @@ func Register(ctx *gin.Context) {
 		Password: hashPassword,
 	}
 	service.CreateUser(&newUser)
+	token := generateToken(ctx, newUser)
 	ctx.JSON(http.StatusOK, UserLoginResponse{
 		Response: common.Response{
 			StatusCode: common.OK,
@@ -86,13 +89,14 @@ func Login(ctx *gin.Context) {
 	}
 	// 登录状态保持 session? jwt?
 	if utils.PasswordVerify(request.Password, u.Password) {
+		token := generateToken(ctx, *u)
 		ctx.JSON(http.StatusOK, UserLoginResponse{
 			Response: common.Response{
 				StatusCode: common.OK,
 				StatusMsg:  "success",
 			},
 			UserId: u.ID,
-			Token:  u.Username + ":" + u.Password,
+			Token:  token,
 		})
 	} else {
 		ctx.JSON(http.StatusOK, UserLoginResponse{
@@ -105,9 +109,8 @@ func Login(ctx *gin.Context) {
 }
 
 func User(ctx *gin.Context) {
-	token := ctx.Query("token")
-	strs := strings.Split(token, ":")
-	username := strs[0]
+	claims := ctx.MustGet("claims").(*middleware.CustomClaims)
+	username := claims.UserName
 	u, _ := service.GetUserByUsername(username)
 	if u.Username != username {
 		ctx.JSON(http.StatusOK, common.Response{
@@ -131,5 +134,37 @@ func User(ctx *gin.Context) {
 			User: userInfo,
 		})
 	}
+
+}
+
+// token生成器
+// md 为上面定义好的middleware中间件
+func generateToken(c *gin.Context, user model.User) string {
+	// 构造SignKey: 签名和解签名需要使用一个值
+	j := middleware.NewJWT()
+
+	// 构造用户claims信息(负荷)
+	claims := middleware.CustomClaims{
+		user.Username,
+		jwt.StandardClaims{
+			NotBefore: int64(time.Now().Unix() - 1000), // 签名生效时间
+			ExpiresAt: int64(time.Now().Unix() + 3600), // 签名过期时间
+			Issuer:    "ttk",                           // 签名颁发者
+		},
+	}
+
+	// 根据claims生成token对象
+	token, err := j.CreateToken(claims)
+
+	if err != nil {
+		c.JSON(http.StatusOK, common.Response{
+			StatusCode: common.OperationFailed,
+			StatusMsg:  err.Error(),
+		})
+	}
+
+	log.Println(token)
+
+	return token
 
 }

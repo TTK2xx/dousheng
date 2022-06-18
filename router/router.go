@@ -2,6 +2,7 @@ package router
 
 import (
 	"dousheng/controller"
+	"dousheng/middleware"
 	"github.com/gin-gonic/gin"
 )
 
@@ -16,7 +17,7 @@ func InitRouter(r *gin.Engine) {
 
 	//// basic apis
 	apiRouter.GET("/feed/", controller.Feed)
-	apiRouter.GET("/user/", controller.User)
+	apiRouter.GET("/user/", middleware.JWTAuth(), controller.User)
 	apiRouter.POST("/user/register/", controller.Register)
 	apiRouter.POST("/user/login/", controller.Login)
 	apiRouter.POST("/publish/action/", controller.Publish)
