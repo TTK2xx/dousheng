@@ -47,6 +47,15 @@ func RelationAction(ctx *gin.Context) {
 	}
 	// 关注取关操作 没做验证 比如判断被关注的是否存在 能否自关
 	var err error
+	//if ok := utils.Lock("Relation-Action-session"); !ok {
+	//	ctx.JSON(http.StatusOK, common.Response{
+	//		StatusCode: common.OperationFailed,
+	//		StatusMsg:  "lock failed！",
+	//	})
+	//	return
+	//}
+	//defer utils.UnLock("user-create-session")
+
 	if request.ActionType == 1 {
 		err = service.Follow(u.ID, request.ToUserID)
 	} else if request.ActionType == 2 {

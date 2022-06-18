@@ -40,7 +40,6 @@ func Follow(fromID int64, toID int64) error {
 	followKey := database.GetFollowKey(fromID)
 	followerKey := database.GetFollowerKey(toID)
 	score := float64(time.Now().Unix())
-
 	// redis事务
 	pipe := database.RedisDB.TxPipeline()
 	defer pipe.Close()
