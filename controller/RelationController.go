@@ -2,11 +2,11 @@ package controller
 
 import (
 	"dousheng/common"
+	"dousheng/middleware"
 	"dousheng/model"
 	"dousheng/service"
 	"github.com/gin-gonic/gin"
 	"net/http"
-	"strings"
 )
 
 type RelationActionRequest struct {
@@ -16,8 +16,8 @@ type RelationActionRequest struct {
 }
 
 type RelationRequest struct {
-	UserID int64  `json:"user_id" form:"user_id" binding:"required"`
-	Token  string `json:"token" form:"token" binding:"required"`
+	UserID int64 `json:"user_id" form:"user_id" binding:"required"`
+	//Token  string `json:"token" form:"token" binding:"required"`
 }
 
 type RelationListResponse struct {
@@ -35,8 +35,8 @@ func RelationAction(ctx *gin.Context) {
 		return
 	}
 	// 判断用户登录
-	strs := strings.Split(request.Token, ":")
-	username := strs[0]
+	claims := ctx.MustGet("claims").(*middleware.CustomClaims)
+	username := claims.UserName
 	u, _ := service.GetUserByUsername(username)
 	if u.Username != username {
 		ctx.JSON(http.StatusOK, common.Response{
@@ -84,8 +84,8 @@ func FollowList(ctx *gin.Context) {
 		return
 	}
 	// 判断用户登录
-	strs := strings.Split(request.Token, ":")
-	username := strs[0]
+	claims := ctx.MustGet("claims").(*middleware.CustomClaims)
+	username := claims.UserName
 	u, _ := service.GetUserByUsername(username)
 	if u.Username != username {
 		ctx.JSON(http.StatusOK, common.Response{
@@ -123,8 +123,8 @@ func FollowerList(ctx *gin.Context) {
 		return
 	}
 	// 判断用户登录
-	strs := strings.Split(request.Token, ":")
-	username := strs[0]
+	claims := ctx.MustGet("claims").(*middleware.CustomClaims)
+	username := claims.UserName
 	u, _ := service.GetUserByUsername(username)
 	if u.Username != username {
 		ctx.JSON(http.StatusOK, common.Response{

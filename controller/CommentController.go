@@ -2,16 +2,16 @@ package controller
 
 import (
 	"dousheng/common"
+	"dousheng/middleware"
 	"dousheng/model"
 	"dousheng/service"
 	"github.com/gin-gonic/gin"
 	"net/http"
-	"strings"
 	"time"
 )
 
 type CommentActionRequest struct {
-	Token       string `form:"token" json:"token" binding:"required"`
+	//Token       string `form:"token" json:"token" binding:"required"`
 	VideoID     int64  `form:"video_id" json:"video_id" binding:"required"`
 	ActionType  int32  `form:"action_type" json:"action_type" binding:"required"`
 	CommentText string `form:"comment_text" json:"comment_text" `
@@ -36,8 +36,8 @@ func CommentAction(c *gin.Context) {
 	choose := request.ActionType
 	if choose == 1 { // 发布评论
 		// 获取userid
-		strs := strings.Split(request.Token, ":")
-		username := strs[0]
+		claims := c.MustGet("claims").(*middleware.CustomClaims)
+		username := claims.UserName
 		u, _ := service.GetUserByUsername(username)
 		if u.Username != username {
 			c.JSON(http.StatusOK, common.Response{
@@ -87,8 +87,8 @@ func CommentAction(c *gin.Context) {
 }
 
 type CommentListRequest struct {
-	Token   string `form:"token" json:"token" binding:"required"`
-	VideoID int64  `form:"video_id" json:"video_id" binding:"required"`
+	//Token   string `form:"token" json:"token" binding:"required"`
+	VideoID int64 `form:"video_id" json:"video_id" binding:"required"`
 }
 
 type CommentListResponse struct {
@@ -106,8 +106,8 @@ func CommentList(c *gin.Context) {
 		return
 	}
 	// 获取userid
-	strs := strings.Split(request.Token, ":")
-	username := strs[0]
+	claims := c.MustGet("claims").(*middleware.CustomClaims)
+	username := claims.UserName
 	u, _ := service.GetUserByUsername(username)
 	if u.Username != username {
 		c.JSON(http.StatusOK, common.Response{

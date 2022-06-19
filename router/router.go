@@ -20,17 +20,17 @@ func InitRouter(r *gin.Engine) {
 	apiRouter.GET("/user/", middleware.JWTAuth(), controller.User)
 	apiRouter.POST("/user/register/", controller.Register)
 	apiRouter.POST("/user/login/", controller.Login)
-	apiRouter.POST("/publish/action/", controller.Publish)
-	apiRouter.GET("/publish/list/", controller.PublishList)
+	apiRouter.POST("/publish/action/", middleware.JWTAuth(), controller.Publish)
+	apiRouter.GET("/publish/list/", middleware.JWTAuth(), controller.PublishList)
 	//
 	//// extra apis - I
-	apiRouter.POST("/favorite/action/", controller.FavoriteAction)
-	apiRouter.GET("/favorite/list/", controller.FavoriteList)
-	apiRouter.POST("/comment/action/", controller.CommentAction)
-	apiRouter.GET("/comment/list/", controller.CommentList)
+	apiRouter.POST("/favorite/action/", middleware.JWTAuth(), controller.FavoriteAction)
+	apiRouter.GET("/favorite/list/", middleware.JWTAuth(), controller.FavoriteList)
+	apiRouter.POST("/comment/action/", middleware.JWTAuth(), controller.CommentAction)
+	apiRouter.GET("/comment/list/", middleware.JWTAuth(), controller.CommentList)
 	//
 	//// extra apis - II
-	apiRouter.POST("/relation/action/", controller.RelationAction)
-	apiRouter.GET("/relation/follow/list/", controller.FollowList)
-	apiRouter.GET("/relation/follower/list/", controller.FollowerList)
+	apiRouter.POST("/relation/action/", middleware.JWTAuth(), controller.RelationAction)
+	apiRouter.GET("/relation/follow/list/", middleware.JWTAuth(), controller.FollowList)
+	apiRouter.GET("/relation/follower/list/", middleware.JWTAuth(), controller.FollowerList)
 }

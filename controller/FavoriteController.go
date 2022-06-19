@@ -2,16 +2,16 @@ package controller
 
 import (
 	"dousheng/common"
+	"dousheng/middleware"
 	"dousheng/model"
 	"dousheng/service"
 	"github.com/gin-gonic/gin"
 	"net/http"
-	"strings"
 )
 
 type FavoriteListRequest struct {
-	UserID int64  `json:"user_id" form:"user_id" binding:"required"`
-	Token  string `json:"token" form:"token" binding:"required"`
+	UserID int64 `json:"user_id" form:"user_id" binding:"required"`
+	//Token  string `json:"token" form:"token" binding:"required"`
 }
 
 type FavoriteListResponse struct {
@@ -23,9 +23,9 @@ type FavoriteListResponse struct {
 
 type FavoriteActionRequest struct {
 	//UserID     int64  `json:"user_id" form:"user_id" binding:"required"`
-	Token      string `json:"token" form:"token" binding:"required"`
-	VideoID    int64  `form:"video_id" json:"video_id" binding:"required"`
-	ActionType int32  `json:"action_type" form:"action_type" binding:"required"`
+	//Token      string `json:"token" form:"token" binding:"required"`
+	VideoID    int64 `form:"video_id" json:"video_id" binding:"required"`
+	ActionType int32 `json:"action_type" form:"action_type" binding:"required"`
 }
 
 type FavoriteActionResponse struct {
@@ -43,8 +43,8 @@ func FavoriteAction(ctx *gin.Context) {
 	}
 
 	// 判断用户登录
-	strs := strings.Split(request.Token, ":")
-	username := strs[0]
+	claims := ctx.MustGet("claims").(*middleware.CustomClaims)
+	username := claims.UserName
 	u, _ := service.GetUserByUsername(username)
 	// 登录用户名不匹配
 	if u.Username != username {
@@ -86,8 +86,8 @@ func FavoriteList(ctx *gin.Context) {
 	}
 
 	// 判断用户登录
-	strs := strings.Split(request.Token, ":")
-	username := strs[0]
+	claims := ctx.MustGet("claims").(*middleware.CustomClaims)
+	username := claims.UserName
 	u, _ := service.GetUserByUsername(username)
 	if u.Username != username {
 		ctx.JSON(http.StatusOK, common.Response{

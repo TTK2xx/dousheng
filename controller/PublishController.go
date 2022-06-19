@@ -2,6 +2,7 @@ package controller
 
 import (
 	"dousheng/common"
+	"dousheng/middleware"
 	"dousheng/model"
 	"dousheng/service"
 	"encoding/base64"
@@ -66,9 +67,10 @@ func Publish(c *gin.Context) {
 		})
 		return
 	}
-	token, _ := c.GetPostForm("token")
-	strs := strings.Split(token, ":")
-	username := strs[0]
+
+	claims := c.MustGet("claims").(*middleware.CustomClaims)
+	username := claims.UserName
+
 	title, _ := c.GetPostForm("title")
 	u, _ := service.GetUserByUsername(username)
 
@@ -173,8 +175,8 @@ func PublishList(ctx *gin.Context) { //我发布的视频列表
 		return
 	}
 	// 判断用户登录
-	strs := strings.Split(request.Token, ":")
-	username := strs[0]
+	claims := ctx.MustGet("claims").(*middleware.CustomClaims)
+	username := claims.UserName
 	u, _ := service.GetUserByUsername(username)
 	if u.Username != username {
 		ctx.JSON(http.StatusOK, common.Response{
